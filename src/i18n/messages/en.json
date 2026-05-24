@@ -279,7 +279,8 @@
       "bank": "Bank accounts",
       "ai": "AI provider",
       "categories": "Categories",
-      "data": "Data & privacy"
+      "data": "Data & privacy",
+      "partners": "Partners"
     },
     "workspace": {
       "nameTitle": "Workspace name",
@@ -441,6 +442,27 @@
       "deleteEverything": "Delete everything",
       "deleteFailedFallback": "Delete failed",
       "deletedToast": "Deleted {txCount} transactions, {memoryCount} memory entries"
+    },
+    "partners": {
+      "title": "Partners",
+      "description": "Tag each bank or card connection with the partner who owns it.",
+      "setupCardTitle": "Who uses this app?",
+      "setupCardDesc": "Enter both names to get started. You can rename them at any time.",
+      "partner1Label": "Partner 1",
+      "partner2Label": "Partner 2",
+      "namePlaceholder": "e.g. Yechi",
+      "getStarted": "Get started",
+      "setupSaved": "Partners set up",
+      "saveFailed": "Failed to save",
+      "renamed": "Partner renamed",
+      "namesCardTitle": "Partner names",
+      "namesCardDesc": "Edit either name and click Save.",
+      "saveButton": "Save",
+      "assignTitle": "Account assignment",
+      "assignDescription": "Choose which partner owns each connected bank or card account.",
+      "unassigned": "Unassigned",
+      "unassignedWarning": "{count, plural, one {# account is unassigned} other {# accounts are unassigned}} and will be excluded from balance calculations.",
+      "noBanks": "No bank accounts connected yet."
     }
   },
   "setup": {
@@ -714,8 +736,12 @@
         "placeholder": "Password you use on digital.isracard.co.il",
         "hint": "The same password you use to log in on the Isracard website."
       },
-      "username": { "label": "Username" },
-      "userCode": { "label": "User Code" },
+      "username": {
+        "label": "Username"
+      },
+      "userCode": {
+        "label": "User Code"
+      },
       "num": {
         "label": "Account Number",
         "discountPlaceholder": "Your Discount account number",

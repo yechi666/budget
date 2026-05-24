@@ -7,6 +7,7 @@ import {
   setRequiresManualTwoFactor,
   updateCredentialField,
 } from "@/server/db/queries/bank-credentials";
+import { setCredentialPartner } from "@/server/db/queries/partners";
 import { getWorkspaceIdFromRequest } from "@/server/lib/workspace-context";
 
 function parseCredentialId(id: string): number | null {
@@ -80,6 +81,7 @@ export async function PATCH(
   let body: {
     requiresManualTwoFactor?: boolean;
     resetTwoFactorToken?: boolean;
+    partnerId?: number | null;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -104,6 +106,13 @@ export async function PATCH(
       "otpLongTermToken",
       null
     );
+  }
+  if ("partnerId" in body) {
+    const pid = body.partnerId;
+    if (pid !== null && pid !== undefined && !Number.isFinite(pid)) {
+      return NextResponse.json({ error: "invalid partnerId" }, { status: 400 });
+    }
+    setCredentialPartner(workspaceId, credentialId, pid ?? null);
   }
 
   return NextResponse.json({ success: true });

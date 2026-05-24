@@ -718,6 +718,20 @@ export const BANK_PROVIDERS: BankProviderInfo[] = [
   },
 ];
 
+export interface Partner {
+  id: number;
+  workspaceId: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface CredentialWithPartner {
+  id: number;
+  label: string;
+  provider: string;
+  partnerId: number | null;
+}
+
 export interface ExcludedMerchant {
   id: number;
   provider: string;
