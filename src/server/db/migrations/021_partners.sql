@@ -4,10 +4,12 @@
 CREATE TABLE partners (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL COLLATE NOCASE,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE(workspace_id, name)
 );
+
+CREATE INDEX idx_partners_workspace ON partners(workspace_id);
 
 -- partner_id is nullable: unassigned connections are excluded from balance
 -- calculations. SQLite allows ADD COLUMN with a nullable FK reference.
