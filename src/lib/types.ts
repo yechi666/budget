@@ -729,7 +729,7 @@ export interface CredentialWithPartner {
   id: number;
   label: string;
   provider: string;
-  partnerId: number | null;
+  partner: Partner | null;
 }
 
 export interface ExcludedMerchant {

@@ -137,19 +137,21 @@ describe("setCredentialPartner + listCredentialsWithPartner", () => {
   beforeEach(() => { db = setupTestDb(); });
   afterEach(() => teardownTestDb(db));
 
-  it("credentials start with partnerId null", () => {
+  it("credentials start with partner null", () => {
     insertCredential(db, { label: "My Card" });
     const creds = listCredentialsWithPartner(WS);
     expect(creds).toHaveLength(1);
-    expect(creds[0].partnerId).toBeNull();
+    expect(creds[0].partner).toBeNull();
   });
 
   it("assigns a partner to a credential and returns true -- C4 fix", () => {
     const credId = insertCredential(db, { label: "My Card" });
-    const { id: partnerId } = createPartner(WS, "Yechi");
-    const ok = setCredentialPartner(WS, credId, partnerId);
+    const created = createPartner(WS, "Yechi");
+    const ok = setCredentialPartner(WS, credId, created.id);
     expect(ok).toBe(true);
-    expect(listCredentialsWithPartner(WS)[0].partnerId).toBe(partnerId);
+    const assigned = listCredentialsWithPartner(WS)[0].partner;
+    expect(assigned?.id).toBe(created.id);
+    expect(assigned?.name).toBe("Yechi");
   });
 
   it("returns false when the credential does not exist -- C4 fix", () => {
@@ -170,18 +172,18 @@ describe("setCredentialPartner + listCredentialsWithPartner", () => {
     const { id: partnerId } = createPartner(WS, "Yechi");
     setCredentialPartner(WS, credId, partnerId);
     setCredentialPartner(WS, credId, null);
-    expect(listCredentialsWithPartner(WS)[0].partnerId).toBeNull();
+    expect(listCredentialsWithPartner(WS)[0].partner).toBeNull();
   });
 
-  it("partner_id becomes null when the partner is deleted (ON DELETE SET NULL)", () => {
+  it("partner becomes null when the partner is deleted (ON DELETE SET NULL)", () => {
     const credId = insertCredential(db, { label: "My Card" });
     const { id: partnerId } = createPartner(WS, "Yechi");
     setCredentialPartner(WS, credId, partnerId);
     db.prepare("DELETE FROM partners WHERE id = ?").run(partnerId);
-    expect(listCredentialsWithPartner(WS)[0].partnerId).toBeNull();
+    expect(listCredentialsWithPartner(WS)[0].partner).toBeNull();
   });
 
-  it("returns correct label and provider alongside partnerId", () => {
+  it("returns correct label and provider alongside partner", () => {
     insertCredential(db, { provider: "leumi", label: "Main Account" });
     const creds = listCredentialsWithPartner(WS);
     expect(creds[0]).toMatchObject({ label: "Main Account", provider: "leumi" });

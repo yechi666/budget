@@ -16,6 +16,16 @@ interface PartnerRow {
   created_at: string;
 }
 
+interface CredentialWithPartnerRow {
+  id: number;
+  label: string;
+  provider: string;
+  partner_id: number | null;
+  partner_workspace_id: number | null;
+  partner_name: string | null;
+  partner_created_at: string | null;
+}
+
 function mapRow(row: PartnerRow): Partner {
   return {
     id: row.id,
@@ -57,9 +67,9 @@ export function createPartner(workspaceId: number, name: string): Partner {
   const result = getDb().transaction(() => {
     const count = (
       getDb()
-        .prepare("SELECT COUNT(*) as c FROM partners WHERE workspace_id = ?")
-        .get(workspaceId) as { c: number }
-    ).c;
+        .prepare("SELECT COUNT(*) as count FROM partners WHERE workspace_id = ?")
+        .get(workspaceId) as { count: number }
+    ).count;
     if (count >= 2) throw new Error("A workspace can have at most 2 partners");
 
     return getDb()
@@ -111,27 +121,36 @@ export function setCredentialPartner(
   return result.changes > 0;
 }
 
-export function listCredentialsWithPartner(workspaceId: number): Array<{
-  id: number;
-  label: string;
-  provider: string;
-  partnerId: number | null;
-}> {
+export function listCredentialsWithPartner(
+  workspaceId: number
+): Array<{ id: number; label: string; provider: string; partner: Partner | null }> {
   const rows = getDb()
     .prepare(
-      `SELECT id, label, provider, partner_id
-       FROM bank_credentials WHERE workspace_id = ? ORDER BY provider, label`
+      `SELECT bc.id, bc.label, bc.provider,
+              p.id              AS partner_id,
+              p.workspace_id   AS partner_workspace_id,
+              p.name           AS partner_name,
+              p.created_at     AS partner_created_at
+       FROM bank_credentials bc
+       LEFT JOIN partners p ON bc.partner_id = p.id
+       WHERE bc.workspace_id = ?
+       ORDER BY bc.provider, bc.label`
     )
-    .all(workspaceId) as Array<{
-    id: number;
-    label: string;
-    provider: string;
-    partner_id: number | null;
-  }>;
-  return rows.map((r) => ({
-    id: r.id,
-    label: r.label,
-    provider: r.provider,
-    partnerId: r.partner_id,
-  }));
+    .all(workspaceId) as CredentialWithPartnerRow[];
+
+  return rows.map((row) => {
+    const partner =
+      row.partner_id !== null &&
+      row.partner_workspace_id !== null &&
+      row.partner_name !== null &&
+      row.partner_created_at !== null
+        ? {
+            id: row.partner_id,
+            workspaceId: row.partner_workspace_id,
+            name: row.partner_name,
+            createdAt: row.partner_created_at,
+          }
+        : null;
+    return { id: row.id, label: row.label, provider: row.provider, partner };
+  });
 }
