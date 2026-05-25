@@ -587,9 +587,13 @@ function SharingSection({
   const handleSharingTypeChange = (value: string | null) => {
     if (!value) return;
     const sharingType = value as SharingType;
-    const fixedRatio = sharingType === "fixed"
-      ? (parseFloat(ratioDisplay) / 100 || 0.5)
-      : 0.5;
+    let fixedRatio = 0.5;
+    if (sharingType === "fixed") {
+      const parsed = parseFloat(ratioDisplay) / 100;
+      if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 1) {
+        fixedRatio = parsed;
+      }
+    }
 
     if (isParentWithChildren) {
       setPendingSharing({ sharingType, fixedRatio });

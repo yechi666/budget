@@ -46,7 +46,7 @@ function insertCategory(
   return Number(result.lastInsertRowid);
 }
 
-describe("PATCH /api/categories/:id -- sharingType and fixedRatio", () => {
+describe("PATCH /api/categories/:id: sharingType and fixedRatio", () => {
   let db: Database.Database;
   beforeEach(() => { db = setupTestDb(); });
   afterEach(() => teardownTestDb(db));

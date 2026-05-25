@@ -70,7 +70,7 @@ function insertTransaction(
   return Number(result.lastInsertRowid);
 }
 
-describe("PATCH /api/transactions/:id -- sharingOverride", () => {
+describe("PATCH /api/transactions/:id: sharingOverride", () => {
   let db: Database.Database;
   beforeEach(() => { db = setupTestDb(); });
   afterEach(() => teardownTestDb(db));
@@ -208,7 +208,7 @@ describe("PATCH /api/transactions/:id -- sharingOverride", () => {
     expect(response.status).toBe(400);
   });
 
-  it("sharingOverride is independent of kind -- both can be in the same request", async () => {
+  it("sharingOverride is independent of kind; both can be in the same request", async () => {
     const syncRunId = insertSyncRun(db);
     const txnId = insertTransaction(db, { syncRunId, kind: "expense" });
 

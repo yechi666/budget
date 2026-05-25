@@ -145,7 +145,7 @@ export async function PATCH(
     applied = true;
   } else if (typed.fixedRatio !== undefined) {
     return NextResponse.json(
-      { error: "fixedRatio must be a finite number in [0,1]" },
+      { error: "fixedRatio requires sharingType" },
       { status: 400 }
     );
   }
