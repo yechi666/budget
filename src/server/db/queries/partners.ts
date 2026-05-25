@@ -16,14 +16,24 @@ interface PartnerRow {
   created_at: string;
 }
 
-interface CredentialWithPartnerRow {
+export interface CredentialWithPartner {
   id: number;
   label: string;
   provider: string;
+  partner: Partner | null;
+}
+
+interface PartnerJoinRow {
   partner_id: number | null;
   partner_workspace_id: number | null;
   partner_name: string | null;
   partner_created_at: string | null;
+}
+
+interface CredentialWithPartnerRow extends PartnerJoinRow {
+  id: number;
+  label: string;
+  provider: string;
 }
 
 function mapRow(row: PartnerRow): Partner {
@@ -123,7 +133,7 @@ export function setCredentialPartner(
 
 export function listCredentialsWithPartner(
   workspaceId: number
-): Array<{ id: number; label: string; provider: string; partner: Partner | null }> {
+): CredentialWithPartner[] {
   const rows = getDb()
     .prepare(
       `SELECT bc.id, bc.label, bc.provider,
