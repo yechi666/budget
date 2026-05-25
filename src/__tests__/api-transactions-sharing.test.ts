@@ -32,8 +32,8 @@ function insertSyncRun(db: Database.Database): number {
   const result = db
     .prepare(
       `INSERT INTO sync_runs
-         (provider, started_at, status, scrape_from_date, transactions_added, transactions_updated)
-       VALUES ('test', datetime('now'), 'completed', '2024-01-01', 0, 0)`
+         (workspace_id, provider, started_at, status, scrape_from_date, transactions_added, transactions_updated)
+       VALUES (1, 'test', datetime('now'), 'completed', '2024-01-01', 0, 0)`
     )
     .run();
   return Number(result.lastInsertRowid);

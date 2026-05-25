@@ -415,7 +415,19 @@
       "deletedToast": "הקטגוריה נמחקה. {count, plural, =0 {} one {עסקה אחת הוסרה מהקטגוריה.} other {# עסקאות הוסרו מהקטגוריה.}}",
       "deleteHasChildren": "מחקו קודם כל תת-קטגוריה שמופיעה ברשימה של הקבוצה.",
       "deleteHasChildrenNamed": "מחקו קודם את תת-הקטגוריות: {names}",
-      "deleteFailed": "לא ניתן למחוק את הקטגוריה"
+      "deleteFailed": "לא ניתן למחוק את הקטגוריה",
+      "sharingLabel": "שיתוף",
+      "sharingDescription": "כיצד הוצאות בקטגוריה זו מתחלקות.",
+      "sharingIndividual": "אישי",
+      "sharingFixed": "קבוע (50/50)",
+      "sharingRatioed": "לפי יחס (בקרוב)",
+      "sharingRatioLabel": "חלק השותף (%)",
+      "sharingUpdated": "השיתוף עודכן",
+      "sharingUpdateFailed": "לא ניתן לעדכן שיתוף",
+      "propagateTitle": "להחיל על תת-קטגוריות?",
+      "propagateDescription": "להחיל הגדרת שיתוף זו על כל {count} תת-קטגוריות של קבוצה זו?",
+      "propagateApply": "החל על הכל",
+      "propagateSkip": "רק קטגוריה זו"
     },
     "data": {
       "title": "נתונים ופרטיות",

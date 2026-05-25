@@ -3,12 +3,14 @@ import {
   updateTransactionCategory,
   setTransactionKind,
   setTransactionNeedsReview,
+  setTransactionSharingOverride,
   getTransactionContext,
 } from "@/server/db/queries/transactions";
 import { recordMerchantCategory } from "@/server/lib/merchant-memory";
 import { recordCorrection } from "@/server/db/queries/category-corrections";
 import { getAllCategories } from "@/server/db/queries/categories";
 import { getWorkspaceIdFromRequest } from "@/server/lib/workspace-context";
+import type { SharingType } from "@/lib/types";
 
 export async function PUT(
   request: Request,
@@ -74,9 +76,11 @@ export async function PATCH(
   const body = (await request.json().catch(() => ({}))) as {
     kind?: unknown;
     approve?: unknown;
+    sharingOverride?: unknown;
   };
 
   const numericId = Number(id);
+  let applied = false;
 
   if (body.approve === true) {
     const ctx = getTransactionContext(workspaceId, numericId);
@@ -104,21 +108,46 @@ export async function PATCH(
         );
       }
     }
-    return NextResponse.json({ success: true });
+    applied = true;
   }
 
-  if (
-    body.kind !== "expense" &&
-    body.kind !== "income" &&
-    body.kind !== "transfer"
-  ) {
+  if (body.kind !== undefined) {
+    if (
+      body.kind !== "expense" &&
+      body.kind !== "income" &&
+      body.kind !== "transfer"
+    ) {
+      return NextResponse.json(
+        { error: "kind must be 'expense', 'income', or 'transfer'" },
+        { status: 400 }
+      );
+    }
+    setTransactionKind(workspaceId, numericId, body.kind);
+    applied = true;
+  }
+
+  if ("sharingOverride" in body) {
+    const validOverrides: (SharingType | null)[] = ["individual", "fixed", "ratioed", null];
+    if (!validOverrides.includes(body.sharingOverride as SharingType | null)) {
+      return NextResponse.json(
+        { error: "sharingOverride must be 'individual', 'fixed', 'ratioed', or null" },
+        { status: 400 }
+      );
+    }
+    const override = body.sharingOverride as SharingType | null;
+    const ok = setTransactionSharingOverride(workspaceId, numericId, override);
+    if (!ok) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+    applied = true;
+  }
+
+  if (!applied) {
     return NextResponse.json(
-      { error: "kind must be 'expense', 'income', or 'transfer', or set approve:true" },
+      { error: "no recognized fields in body" },
       { status: 400 }
     );
   }
-
-  setTransactionKind(workspaceId, numericId, body.kind);
 
   return NextResponse.json({ success: true });
 }

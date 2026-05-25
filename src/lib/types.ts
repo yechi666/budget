@@ -33,6 +33,7 @@ export interface Transaction {
   needsReview: boolean;
   createdAt: string;
   updatedAt: string;
+  sharingOverride: SharingType | null;
 }
 
 export interface TransactionWithCategory extends Transaction {
@@ -45,6 +46,8 @@ export type CategoryKind = "expense" | "income";
 
 export type BudgetMode = "budgeted" | "tracking";
 
+export type SharingType = "individual" | "fixed" | "ratioed";
+
 export interface Category {
   id: number;
   parentId: number | null;
@@ -54,6 +57,8 @@ export interface Category {
   kind: CategoryKind;
   budgetMode: BudgetMode;
   description: string | null;
+  sharingType: SharingType;
+  fixedRatio: number;
 }
 
 export type CategoryViewMode = "collapsed" | "expanded";

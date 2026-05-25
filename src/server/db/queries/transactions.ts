@@ -8,6 +8,7 @@ import type {
   MonthlySummary,
   MerchantSummary,
   CategoryBreakdown,
+  SharingType,
 } from "@/lib/types";
 import {
   isTransactionSortField,
@@ -562,6 +563,7 @@ interface TransactionRow {
   is_excluded: number;
   created_at: string;
   updated_at: string;
+  sharing_override: string | null;
   category_name?: string | null;
   category_color?: string | null;
   account_label?: string | null;
@@ -597,6 +599,7 @@ function mapTransactionRow(row: unknown): TransactionWithCategory {
     isExcluded: r.is_excluded === 1,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    sharingOverride: (r.sharing_override ?? null) as SharingType | null,
     categoryName: r.category_name ?? null,
     categoryColor: r.category_color ?? null,
   };
@@ -628,6 +631,21 @@ export function setTransactionNeedsReview(
        WHERE workspace_id = ? AND id = ?`
     )
     .run(value ? 1 : 0, workspaceId, id);
+}
+
+export function setTransactionSharingOverride(
+  workspaceId: number,
+  id: number,
+  override: SharingType | null
+): boolean {
+  const result = getDb()
+    .prepare(
+      `UPDATE transactions
+       SET sharing_override = ?, updated_at = datetime('now')
+       WHERE workspace_id = ? AND id = ?`
+    )
+    .run(override, workspaceId, id);
+  return result.changes > 0;
 }
 
 interface TransactionContext {

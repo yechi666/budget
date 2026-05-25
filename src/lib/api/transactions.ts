@@ -1,4 +1,4 @@
-import type { TransactionWithCategory } from "@/lib/types";
+import type { TransactionWithCategory, SharingType } from "@/lib/types";
 import { fetchJSON } from "./_core";
 
 export type TransactionKindFilter = "expense" | "income" | "all";
@@ -79,6 +79,17 @@ export function approveTransactionCategory(id: number) {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ approve: true }),
+  });
+}
+
+export function setTransactionSharingOverride(
+  id: number,
+  override: SharingType | null
+) {
+  return fetchJSON<{ success: boolean }>(`/api/transactions/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sharingOverride: override }),
   });
 }
 

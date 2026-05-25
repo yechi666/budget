@@ -85,8 +85,8 @@ describe("migration 022: CHECK constraints", () => {
     // First insert a minimal sync_run and credential so FK is satisfied
     db.prepare(
       `INSERT INTO sync_runs
-         (provider, started_at, status, scrape_from_date, transactions_added, transactions_updated)
-       VALUES ('test', datetime('now'), 'completed', '2024-01-01', 0, 0)`
+         (workspace_id, provider, started_at, status, scrape_from_date, transactions_added, transactions_updated)
+       VALUES (1, 'test', datetime('now'), 'completed', '2024-01-01', 0, 0)`
     ).run();
     const syncRunId = (db.prepare("SELECT last_insert_rowid() as id").get() as { id: number }).id;
     expect(() => {
