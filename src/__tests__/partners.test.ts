@@ -7,6 +7,7 @@ import {
   renamePartner,
   setCredentialPartner,
   listCredentialsWithPartner,
+  getPartnerById,
 } from "@/server/db/queries/partners";
 
 const WS = 1; // workspace id seeded by migration 013
@@ -25,6 +26,29 @@ describe("listPartners", () => {
     createPartner(WS, "Reni");
     const names = listPartners(WS).map((p) => p.name);
     expect(names).toEqual(["Yechi", "Reni"]);
+  });
+});
+
+describe("getPartnerById", () => {
+  let db: Database.Database;
+  beforeEach(() => { db = setupTestDb(); });
+  afterEach(() => teardownTestDb(db));
+
+  it("returns the partner when found in the workspace", () => {
+    const { id } = createPartner(WS, "Yechi");
+    const p = getPartnerById(WS, id);
+    expect(p?.name).toBe("Yechi");
+  });
+
+  it("returns null for a non-existent id", () => {
+    expect(getPartnerById(WS, 9999)).toBeNull();
+  });
+
+  it("returns null when the partner belongs to a different workspace", () => {
+    db.prepare("INSERT INTO workspaces (id, name, slug) VALUES (2, 'Other', 'other')").run();
+    const { id } = createPartner(WS, "Yechi");
+    // Partner is in WS=1 but we query from WS=2 -- should not be visible
+    expect(getPartnerById(2, id)).toBeNull();
   });
 });
 
@@ -54,17 +78,21 @@ describe("createPartner", () => {
     expect(() => createPartner(WS, "Yechi")).toThrow();
   });
 
-  it("enforces the 2-partner cap", () => {
+  it("treats names as case-insensitive (COLLATE NOCASE) -- C8 fix", () => {
+    createPartner(WS, "Alice");
+    // 'alice' must be rejected as a duplicate of 'Alice'
+    expect(() => createPartner(WS, "alice")).toThrow();
+  });
+
+  it("enforces the 2-partner cap atomically -- C3 fix", () => {
     createPartner(WS, "Yechi");
     createPartner(WS, "Reni");
     expect(() => createPartner(WS, "Third")).toThrow(/at most 2/);
   });
 
   it("allows the same name in a different workspace", () => {
-    // Create a second workspace first
     db.prepare("INSERT INTO workspaces (id, name, slug) VALUES (2, 'Other', 'other')").run();
     createPartner(WS, "Yechi");
-    // Should not throw for workspace 2
     const p = createPartner(2, "Yechi");
     expect(p.workspaceId).toBe(2);
   });
@@ -100,7 +128,6 @@ describe("renamePartner", () => {
   it("returns null when the workspace does not match", () => {
     db.prepare("INSERT INTO workspaces (id, name, slug) VALUES (2, 'Other', 'other')").run();
     const { id } = createPartner(WS, "Yechi");
-    // Attempt rename from a different workspace
     expect(renamePartner(2, id, "Hacker")).toBeNull();
   });
 });
@@ -117,12 +144,25 @@ describe("setCredentialPartner + listCredentialsWithPartner", () => {
     expect(creds[0].partnerId).toBeNull();
   });
 
-  it("assigns a partner to a credential", () => {
+  it("assigns a partner to a credential and returns true -- C4 fix", () => {
     const credId = insertCredential(db, { label: "My Card" });
     const { id: partnerId } = createPartner(WS, "Yechi");
-    setCredentialPartner(WS, credId, partnerId);
-    const creds = listCredentialsWithPartner(WS);
-    expect(creds[0].partnerId).toBe(partnerId);
+    const ok = setCredentialPartner(WS, credId, partnerId);
+    expect(ok).toBe(true);
+    expect(listCredentialsWithPartner(WS)[0].partnerId).toBe(partnerId);
+  });
+
+  it("returns false when the credential does not exist -- C4 fix", () => {
+    const ok = setCredentialPartner(WS, 9999, null);
+    expect(ok).toBe(false);
+  });
+
+  it("returns false when the credential belongs to a different workspace -- C4 fix", () => {
+    db.prepare("INSERT INTO workspaces (id, name, slug) VALUES (2, 'Other', 'other')").run();
+    const credId = insertCredential(db, { workspaceId: WS, label: "WS1 Card" });
+    // Attempt to update from WS 2 -- must not affect WS 1
+    const ok = setCredentialPartner(2, credId, null);
+    expect(ok).toBe(false);
   });
 
   it("clears a partner assignment (back to null)", () => {
@@ -137,7 +177,6 @@ describe("setCredentialPartner + listCredentialsWithPartner", () => {
     const credId = insertCredential(db, { label: "My Card" });
     const { id: partnerId } = createPartner(WS, "Yechi");
     setCredentialPartner(WS, credId, partnerId);
-    // Delete the partner directly
     db.prepare("DELETE FROM partners WHERE id = ?").run(partnerId);
     expect(listCredentialsWithPartner(WS)[0].partnerId).toBeNull();
   });

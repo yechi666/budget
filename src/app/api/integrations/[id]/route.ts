@@ -7,7 +7,7 @@ import {
   setRequiresManualTwoFactor,
   updateCredentialField,
 } from "@/server/db/queries/bank-credentials";
-import { setCredentialPartner } from "@/server/db/queries/partners";
+import { setCredentialPartner, getPartnerById } from "@/server/db/queries/partners";
 import { getWorkspaceIdFromRequest } from "@/server/lib/workspace-context";
 
 function parseCredentialId(id: string): number | null {
@@ -109,10 +109,22 @@ export async function PATCH(
   }
   if ("partnerId" in body) {
     const pid = body.partnerId;
-    if (pid !== null && pid !== undefined && !Number.isFinite(pid)) {
-      return NextResponse.json({ error: "invalid partnerId" }, { status: 400 });
+    if (pid !== null && pid !== undefined) {
+      // C2: reject zero and negative ids (auto-increment starts at 1)
+      if (!Number.isFinite(pid) || pid <= 0) {
+        return NextResponse.json({ error: "invalid partnerId" }, { status: 400 });
+      }
+      // C1: ensure the partner belongs to the same workspace as the credential
+      if (!getPartnerById(workspaceId, pid)) {
+        return NextResponse.json({ error: "partner not found" }, { status: 404 });
+      }
     }
-    setCredentialPartner(workspaceId, credentialId, pid ?? null);
+    // C4: setCredentialPartner returns false if the credential was deleted in a
+    // race between the existence check above and this write.
+    const updated = setCredentialPartner(workspaceId, credentialId, pid ?? null);
+    if (!updated) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
   }
 
   return NextResponse.json({ success: true });

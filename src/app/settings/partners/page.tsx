@@ -58,12 +58,20 @@ function FirstTimeSetup({ existingPartners }: { existingPartners: Partner[] }) {
   const mutation = useMutation({
     mutationFn: async () => {
       const results: Partner[] = [...existingPartners];
+
+      // Partner 1: create if new, or rename if the name was edited.
       if (results.length === 0) {
         results.push(await createPartner(name1.trim()));
+      } else if (results[0].name !== name1.trim()) {
+        const renamed = await renamePartner(results[0].id, name1.trim());
+        if (renamed) results[0] = renamed;
       }
-      if (results.length === 1) {
+
+      // Partner 2: always needs to be created at this point.
+      if (results.length < 2) {
         results.push(await createPartner(name2.trim()));
       }
+
       return results;
     },
     onSuccess: () => {
@@ -71,14 +79,19 @@ function FirstTimeSetup({ existingPartners }: { existingPartners: Partner[] }) {
       toast.success(t("setupSaved"));
     },
     onError: (err) => {
+      // C5: invalidate so the cache reflects what was actually saved in the DB,
+      // preventing a stuck UI when the first partner was committed but the
+      // second failed.
+      void qc.invalidateQueries({ queryKey: ["partners"] });
       toast.error(err instanceof Error ? err.message : t("saveFailed"));
     },
   });
 
+  // C8: case-insensitive comparison to match the DB COLLATE NOCASE constraint.
   const canSave =
     name1.trim().length > 0 &&
     name2.trim().length > 0 &&
-    name1.trim() !== name2.trim();
+    name1.trim().toLowerCase() !== name2.trim().toLowerCase();
 
   return (
     <SettingCard title={t("setupCardTitle")} description={t("setupCardDesc")}>
@@ -86,11 +99,13 @@ function FirstTimeSetup({ existingPartners }: { existingPartners: Partner[] }) {
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>{t("partner1Label")}</Label>
+            {/* C6: never disable name1 — if partner 1 was already saved but
+                partner 2 failed, the user must be able to correct a typo. The
+                mutation handles rename vs create automatically. */}
             <Input
               value={name1}
               onChange={(e) => setName1(e.target.value)}
               placeholder={t("namePlaceholder")}
-              disabled={existingPartners.length >= 1}
             />
           </div>
           <div className="space-y-1.5">
@@ -144,11 +159,25 @@ function SetupDone({ partners }: { partners: Partner[] }) {
       credentialId: number;
       partnerId: number | null;
     }) => setCredentialPartner(credentialId, partnerId),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["partners-credentials"] });
+    // C7: optimistic update so the dropdown reflects the new value immediately
+    // without waiting for the refetch, eliminating the visible snap-back.
+    onMutate: async ({ credentialId, partnerId }) => {
+      await qc.cancelQueries({ queryKey: ["partners-credentials"] });
+      const previous = qc.getQueryData<CredentialWithPartner[]>(["partners-credentials"]);
+      qc.setQueryData<CredentialWithPartner[]>(
+        ["partners-credentials"],
+        (old) => old?.map((c) => c.id === credentialId ? { ...c, partnerId } : c) ?? []
+      );
+      return { previous };
     },
-    onError: (err) => {
+    onError: (err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["partners-credentials"], context.previous);
+      }
       toast.error(err instanceof Error ? err.message : t("saveFailed"));
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["partners-credentials"] });
     },
   });
 
