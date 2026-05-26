@@ -245,7 +245,7 @@ export function createParentCategory(
     budgetMode: "budgeted",
     description,
     sharingType: "individual" as SharingType,
-    fixedRatio: 0.5,
+    fixedRatio: null,
   };
 }
 
@@ -349,21 +349,27 @@ export function ensureCategory(
     budgetMode: "budgeted",
     description: null,
     sharingType: "individual" as SharingType,
-    fixedRatio: 0.5,
+    fixedRatio: null,
   };
 }
 
+/**
+ * Update a category's sharing rule. When sharingType is "fixed", fixedRatio
+ * must be a number in [0, 1]. For "individual" / "ratioed", fixedRatio is
+ * coerced to null (the ratio doesn't apply).
+ */
 export function updateCategorySharing(
   workspaceId: number,
   id: number,
   sharingType: SharingType,
-  fixedRatio: number
+  fixedRatio: number | null
 ): boolean {
+  const ratioToStore = sharingType === "fixed" ? fixedRatio : null;
   const result = getDb()
     .prepare(
       "UPDATE categories SET sharing_type = ?, fixed_ratio = ? WHERE workspace_id = ? AND id = ?"
     )
-    .run(sharingType, fixedRatio, workspaceId, id);
+    .run(sharingType, ratioToStore, workspaceId, id);
   return result.changes > 0;
 }
 
@@ -371,13 +377,14 @@ export function updateCategoryChildrenSharing(
   workspaceId: number,
   parentId: number,
   sharingType: SharingType,
-  fixedRatio: number
+  fixedRatio: number | null
 ): number {
+  const ratioToStore = sharingType === "fixed" ? fixedRatio : null;
   const result = getDb()
     .prepare(
       "UPDATE categories SET sharing_type = ?, fixed_ratio = ? WHERE workspace_id = ? AND parent_id = ?"
     )
-    .run(sharingType, fixedRatio, workspaceId, parentId);
+    .run(sharingType, ratioToStore, workspaceId, parentId);
   return result.changes;
 }
 

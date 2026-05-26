@@ -48,6 +48,16 @@ export type BudgetMode = "budgeted" | "tracking";
 
 export type SharingType = "individual" | "fixed" | "ratioed";
 
+/**
+ * Canonical list of every valid SharingType. Use this for runtime validation
+ * and error-message construction so new variants automatically flow through.
+ */
+export const SHARING_TYPES: readonly SharingType[] = [
+  "individual",
+  "fixed",
+  "ratioed",
+] as const;
+
 export interface Category {
   id: number;
   parentId: number | null;
@@ -58,7 +68,11 @@ export interface Category {
   budgetMode: BudgetMode;
   description: string | null;
   sharingType: SharingType;
-  fixedRatio: number;
+  /**
+   * Non-payer's share, in [0, 1]. Only meaningful when sharingType === "fixed".
+   * NULL when sharingType is "individual" or "ratioed" (the ratio doesn't apply).
+   */
+  fixedRatio: number | null;
 }
 
 export type CategoryViewMode = "collapsed" | "expanded";

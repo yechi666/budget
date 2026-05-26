@@ -166,10 +166,11 @@ describe("createParentCategory includes sharing fields", () => {
   beforeEach(() => { db = setupTestDb(); });
   afterEach(() => teardownTestDb(db));
 
-  it("returns sharingType individual and fixedRatio 0.5 from createParentCategory", () => {
+  it("returns sharingType individual and fixedRatio null from createParentCategory", () => {
     const cat = createParentCategory(WS, { name: "NewParent", kind: "expense" });
     expect((cat as unknown as { sharingType: string }).sharingType).toBe("individual");
-    expect((cat as unknown as { fixedRatio: number }).fixedRatio).toBe(0.5);
+    // Individual categories don't have a meaningful ratio; should be null.
+    expect((cat as unknown as { fixedRatio: number | null }).fixedRatio).toBeNull();
   });
 });
 

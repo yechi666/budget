@@ -2,14 +2,9 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import type Database from "better-sqlite3";
 import { setupTestDb, teardownTestDb } from "./helpers/db";
 import { PATCH } from "@/app/api/categories/[id]/route";
+import { getCategoryById } from "@/server/db/queries/categories";
 
 const WS = 1;
-
-interface CategorySharingRow {
-  sharing_type: string;
-  fixed_ratio: number;
-  budget_mode: string;
-}
 
 function makeRequest(body: unknown, workspaceId = WS): Request {
   return new Request("http://localhost/api/categories/1", {
@@ -22,26 +17,39 @@ function makeRequest(body: unknown, workspaceId = WS): Request {
   });
 }
 
+/**
+ * Test-only fixture: insert a category directly. There's no production
+ * function that creates an arbitrary leaf with a chosen sharing type, so
+ * raw SQL is the only option for setting up these scenarios.
+ *
+ * For READING the row back, use getCategoryById (production function) so
+ * the test exercises the same query path as the app.
+ */
 function insertCategory(
   db: Database.Database,
   opts: {
     workspaceId?: number;
     name: string;
     parentId?: number | null;
-    sharingType?: string;
+    sharingType?: "individual" | "fixed" | "ratioed";
   }
 ): number {
+  const sharingType = opts.sharingType ?? "individual";
+  // Honor the schema's "fixed_ratio is meaningful only when sharing_type is
+  // fixed" convention even in test fixtures.
+  const fixedRatio = sharingType === "fixed" ? 0.5 : null;
   const result = db
     .prepare(
       `INSERT INTO categories
          (workspace_id, parent_id, name, color, icon, kind, sharing_type, fixed_ratio)
-       VALUES (?, ?, ?, '#aabbcc', 'circle', 'expense', ?, 0.5)`
+       VALUES (?, ?, ?, '#aabbcc', 'circle', 'expense', ?, ?)`
     )
     .run(
       opts.workspaceId ?? WS,
       opts.parentId ?? null,
       opts.name,
-      opts.sharingType ?? "individual"
+      sharingType,
+      fixedRatio
     );
   return Number(result.lastInsertRowid);
 }
@@ -61,11 +69,10 @@ describe("PATCH /api/categories/:id: sharingType and fixedRatio", () => {
     const json = await response.json() as { success: boolean };
     expect(json.success).toBe(true);
 
-    const row = db
-      .prepare("SELECT sharing_type, fixed_ratio FROM categories WHERE id = ?")
-      .get(catId) as CategorySharingRow;
-    expect(row.sharing_type).toBe("fixed");
-    expect(row.fixed_ratio).toBeCloseTo(0.5);
+    const stored = getCategoryById(WS, catId);
+    expect(stored).not.toBeNull();
+    expect(stored!.sharingType).toBe("fixed");
+    expect(stored!.fixedRatio).toBeCloseTo(0.5);
   });
 
   it("returns 400 for an invalid sharingType value", async () => {
@@ -132,10 +139,9 @@ describe("PATCH /api/categories/:id: sharingType and fixedRatio", () => {
     expect(response.status).toBe(200);
 
     for (const childId of [child1, child2]) {
-      const row = db
-        .prepare("SELECT sharing_type FROM categories WHERE id = ?")
-        .get(childId) as CategorySharingRow;
-      expect(row.sharing_type).toBe("ratioed");
+      const stored = getCategoryById(WS, childId);
+      expect(stored).not.toBeNull();
+      expect(stored!.sharingType).toBe("ratioed");
     }
   });
 
@@ -148,10 +154,9 @@ describe("PATCH /api/categories/:id: sharingType and fixedRatio", () => {
       { params: Promise.resolve({ id: String(parentId) }) }
     );
 
-    const row = db
-      .prepare("SELECT sharing_type FROM categories WHERE id = ?")
-      .get(childId) as CategorySharingRow;
-    expect(row.sharing_type).toBe("individual");
+    const stored = getCategoryById(WS, childId);
+    expect(stored).not.toBeNull();
+    expect(stored!.sharingType).toBe("individual");
   });
 
   it("existing budgetMode patch still works (regression)", async () => {
@@ -161,10 +166,9 @@ describe("PATCH /api/categories/:id: sharingType and fixedRatio", () => {
       { params: Promise.resolve({ id: String(catId) }) }
     );
     expect(response.status).toBe(200);
-    const row = db
-      .prepare("SELECT budget_mode FROM categories WHERE id = ?")
-      .get(catId) as CategorySharingRow;
-    expect(row.budget_mode).toBe("tracking");
+    const stored = getCategoryById(WS, catId);
+    expect(stored).not.toBeNull();
+    expect(stored!.budgetMode).toBe("tracking");
   });
 
   it("returns 400 when body has no recognized fields", async () => {

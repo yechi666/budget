@@ -542,6 +542,15 @@ function DescriptionSection({ category }: { category: Category }) {
   );
 }
 
+function getSharingLabel(
+  value: string,
+  t: ReturnType<typeof useTranslations<"settings.categories">>
+): string {
+  if (value === "fixed") return t("sharingFixed");
+  if (value === "ratioed") return t("sharingRatioed");
+  return t("sharingIndividual");
+}
+
 function SharingSection({
   category,
   childCategories,
@@ -646,11 +655,7 @@ function SharingSection({
           >
             <SelectTrigger>
               <SelectValue>
-                {(value: string) => {
-                  if (value === "fixed") return t("sharingFixed");
-                  if (value === "ratioed") return t("sharingRatioed");
-                  return t("sharingIndividual");
-                }}
+                {(value: string) => getSharingLabel(value, t)}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>

@@ -35,13 +35,13 @@ describe("migration 022: categories table columns", () => {
     db.close();
   });
 
-  it("adds fixed_ratio column with NOT NULL DEFAULT 0.5", () => {
+  it("adds fixed_ratio column as nullable (only set when sharing_type is fixed)", () => {
     const db = freshDb();
     const columns = db.pragma("table_info(categories)") as TableInfoRow[];
     const col = columns.find((c) => c.name === "fixed_ratio");
     expect(col).toBeDefined();
-    expect(col!.notnull).toBe(1);
-    expect(col!.dflt_value).toBe("0.5");
+    expect(col!.notnull).toBe(0);
+    expect(col!.dflt_value).toBeNull();
     db.close();
   });
 
