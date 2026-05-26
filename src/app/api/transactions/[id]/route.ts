@@ -10,7 +10,13 @@ import { recordMerchantCategory } from "@/server/lib/merchant-memory";
 import { recordCorrection } from "@/server/db/queries/category-corrections";
 import { getAllCategories } from "@/server/db/queries/categories";
 import { getWorkspaceIdFromRequest } from "@/server/lib/workspace-context";
-import type { SharingType } from "@/lib/types";
+import { SHARING_TYPES, type SharingType } from "@/lib/types";
+
+function isValidSharingOverride(value: unknown): value is SharingType | null {
+  return value === null || (typeof value === "string" && SHARING_TYPES.includes(value as SharingType));
+}
+
+const SHARING_OVERRIDE_DISPLAY = `${SHARING_TYPES.map((t) => `'${t}'`).join(", ")}, or null`;
 
 export async function PUT(
   request: Request,
@@ -127,15 +133,13 @@ export async function PATCH(
   }
 
   if ("sharingOverride" in body) {
-    const validOverrides: (SharingType | null)[] = ["individual", "fixed", "ratioed", null];
-    if (!validOverrides.includes(body.sharingOverride as SharingType | null)) {
+    if (!isValidSharingOverride(body.sharingOverride)) {
       return NextResponse.json(
-        { error: "sharingOverride must be 'individual', 'fixed', 'ratioed', or null" },
+        { error: `sharingOverride must be one of: ${SHARING_OVERRIDE_DISPLAY}` },
         { status: 400 }
       );
     }
-    const override = body.sharingOverride as SharingType | null;
-    const ok = setTransactionSharingOverride(workspaceId, numericId, override);
+    const ok = setTransactionSharingOverride(workspaceId, numericId, body.sharingOverride);
     if (!ok) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
