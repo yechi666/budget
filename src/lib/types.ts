@@ -33,17 +33,23 @@ export interface Transaction {
   needsReview: boolean;
   createdAt: string;
   updatedAt: string;
+  sharingOverride: SharingType | null;
 }
 
 export interface TransactionWithCategory extends Transaction {
   categoryName: string | null;
   categoryColor: string | null;
+  categorySharingType: SharingType | null;
+  categoryFixedRatio: number | null;
   isExcluded: boolean;
+  inReviewQueue: boolean;
 }
 
 export type CategoryKind = "expense" | "income";
 
 export type BudgetMode = "budgeted" | "tracking";
+
+export type SharingType = "individual" | "fixed" | "ratioed";
 
 export interface Category {
   id: number;
@@ -54,6 +60,8 @@ export interface Category {
   kind: CategoryKind;
   budgetMode: BudgetMode;
   description: string | null;
+  sharingType: SharingType;
+  fixedRatio: number;
 }
 
 export type CategoryViewMode = "collapsed" | "expanded";
@@ -737,4 +745,13 @@ export interface ExcludedMerchant {
   provider: string;
   merchantKey: string;
   createdAt: string;
+}
+
+export type ReviewTrigger = "low-confidence" | "unknown-payer";
+
+export interface ReviewItem {
+  transaction: TransactionWithCategory;
+  triggers: ReviewTrigger[];
+  suggestedCategoryId: number | null;
+  suggestedSharingType: SharingType | null;
 }

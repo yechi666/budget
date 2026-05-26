@@ -1,4 +1,4 @@
-import type { Category, Budget, BudgetMode } from "@/lib/types";
+import type { Category, Budget, BudgetMode, SharingType } from "@/lib/types";
 import type { CategoryKindFilter } from "./transactions";
 import { fetchJSON } from "./_core";
 
@@ -113,6 +113,17 @@ export function setCategoryParent(
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ parentId }),
+  });
+}
+
+export function updateCategorySharing(
+  categoryId: number,
+  body: { sharingType: SharingType; fixedRatio?: number; propagateToChildren?: boolean }
+) {
+  return fetchJSON<{ success: boolean }>(`/api/categories/${categoryId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
 }
 

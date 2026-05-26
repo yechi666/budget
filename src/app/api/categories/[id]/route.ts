@@ -4,8 +4,11 @@ import {
   setCategoryParent,
   updateCategoryBudgetMode,
   updateCategoryDescription,
+  updateCategorySharing,
+  updateCategoryChildrenSharing,
 } from "@/server/db/queries/categories";
 import { getWorkspaceIdFromRequest } from "@/server/lib/workspace-context";
+import type { SharingType } from "@/lib/types";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
@@ -31,6 +34,9 @@ export async function PATCH(
     budgetMode?: unknown;
     description?: unknown;
     parentId?: unknown;
+    sharingType?: unknown;
+    fixedRatio?: unknown;
+    propagateToChildren?: unknown;
   };
 
   let applied = false;
@@ -99,6 +105,49 @@ export async function PATCH(
       );
     }
     applied = true;
+  }
+
+  if (typed.sharingType !== undefined) {
+    const validSharingTypes: SharingType[] = ["individual", "fixed", "ratioed"];
+    if (!validSharingTypes.includes(typed.sharingType as SharingType)) {
+      return NextResponse.json(
+        { error: "sharingType must be 'individual', 'fixed', or 'ratioed'" },
+        { status: 400 }
+      );
+    }
+    const sharingType = typed.sharingType as SharingType;
+
+    let fixedRatio = 0.5;
+    if (typed.fixedRatio !== undefined) {
+      if (
+        typeof typed.fixedRatio !== "number" ||
+        !Number.isFinite(typed.fixedRatio) ||
+        typed.fixedRatio < 0 ||
+        typed.fixedRatio > 1
+      ) {
+        return NextResponse.json(
+          { error: "fixedRatio must be a finite number in [0,1]" },
+          { status: 400 }
+        );
+      }
+      fixedRatio = typed.fixedRatio;
+    }
+
+    const ok = updateCategorySharing(workspaceId, categoryId, sharingType, fixedRatio);
+    if (!ok) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+
+    if (typed.propagateToChildren === true) {
+      updateCategoryChildrenSharing(workspaceId, categoryId, sharingType, fixedRatio);
+    }
+
+    applied = true;
+  } else if (typed.fixedRatio !== undefined) {
+    return NextResponse.json(
+      { error: "fixedRatio requires sharingType" },
+      { status: 400 }
+    );
   }
 
   if (!applied) {
