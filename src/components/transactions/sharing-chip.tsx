@@ -44,20 +44,34 @@ export function SharingChip({ transaction }: Props) {
     },
   });
 
-  if (computedType === "individual") return null;
+  // Show the chip when:
+  // 1. The effective sharing type is non-individual (category default or
+  //    override makes this a shared transaction), OR
+  // 2. The user has set sharing_override = 'individual' on top of a category
+  //    that defaults to a shared type. Without this branch the override
+  //    would be invisible and uncleared able once set.
+  const isIndividualOverride =
+    transaction.sharingOverride === "individual" &&
+    transaction.categorySharingType != null &&
+    transaction.categorySharingType !== "individual";
 
-  // Cast to SharingType so popover buttons can check all three variants
-  // (including "individual" for the active-state highlight).
-  const effectiveType = computedType as SharingType;
+  if (computedType === "individual" && !isIndividualOverride) return null;
 
-  const label =
-    effectiveType === "fixed" ? t("sharingChipShared") : t("sharingChipRatioed");
+  const effectiveType = computedType;
+
+  const label = isIndividualOverride
+    ? t("sharingChipIndividual")
+    : effectiveType === "fixed"
+      ? t("sharingChipShared")
+      : t("sharingChipRatioed");
 
   const chipClass = cn(
     "inline-flex cursor-pointer items-center gap-1 rounded-full border-0 bg-transparent px-2 py-0.5 text-xs outline-none",
-    effectiveType === "fixed"
-      ? "bg-secondary text-secondary-foreground"
-      : "bg-accent text-accent-foreground"
+    isIndividualOverride
+      ? "bg-muted text-muted-foreground"
+      : effectiveType === "fixed"
+        ? "bg-secondary text-secondary-foreground"
+        : "bg-accent text-accent-foreground"
   );
 
   return (

@@ -622,11 +622,21 @@ function mapTransactionRow(row: unknown): TransactionWithCategory {
     categoryColor: r.category_color ?? null,
     categorySharingType: (r.category_sharing_type ?? null) as SharingType | null,
     categoryFixedRatio: r.category_fixed_ratio ?? null,
+    // Effective sharing type follows the same convention as the review queue:
+    // per-transaction override wins over the category default. Without this,
+    // a "Mark as mine" resolution (sets sharing_override='individual') would
+    // leave inReviewQueue=true and the flag icon would never clear.
     inReviewQueue:
       r.needs_review === 1 ||
-      (r.category_sharing_type != null &&
-        r.category_sharing_type !== "individual" &&
-        (r.bc_partner_id == null || r.credential_id == null)),
+      (() => {
+        const effectiveSharingType =
+          r.sharing_override ?? r.category_sharing_type ?? null;
+        return (
+          effectiveSharingType != null &&
+          effectiveSharingType !== "individual" &&
+          (r.bc_partner_id == null || r.credential_id == null)
+        );
+      })(),
   };
 }
 
