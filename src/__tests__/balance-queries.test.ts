@@ -150,7 +150,7 @@ describe("getBalance: fixed-type transaction math", () => {
     const credA = insertCredential(db, { label: "Card A" });
     db.prepare("UPDATE bank_credentials SET partner_id = ? WHERE id = ?").run(partnerA.id, credA);
     const syncRunId = insertSyncRun(db);
-    const catId = insertCategory(db, { name: "Groceries", sharingType: "fixed", fixedRatio: 0.5 });
+    const catId = insertCategory(db, { name: "GroceriesTest", sharingType: "fixed", fixedRatio: 0.5 });
     insertTransaction(db, { syncRunId, credentialId: credA, categoryId: catId, chargedAmount: -100 });
 
     const result = getBalance(WS)!;
@@ -182,7 +182,7 @@ describe("getBalance: fixed-type transaction math", () => {
     db.prepare("UPDATE bank_credentials SET partner_id = ? WHERE id = ?").run(partnerA.id, credA);
     db.prepare("UPDATE bank_credentials SET partner_id = ? WHERE id = ?").run(partnerB.id, credB);
     const syncRunId = insertSyncRun(db);
-    const catId = insertCategory(db, { name: "Groceries", sharingType: "fixed", fixedRatio: 0.5 });
+    const catId = insertCategory(db, { name: "GroceriesTest", sharingType: "fixed", fixedRatio: 0.5 });
     insertTransaction(db, { syncRunId, credentialId: credA, categoryId: catId, chargedAmount: -100, dedupHash: "h1" });
     insertTransaction(db, { syncRunId, credentialId: credB, categoryId: catId, chargedAmount: -100, dedupHash: "h2" });
 
@@ -198,7 +198,7 @@ describe("getBalance: fixed-type transaction math", () => {
     db.prepare("UPDATE bank_credentials SET partner_id = ? WHERE id = ?").run(partnerA.id, credA);
     db.prepare("UPDATE bank_credentials SET partner_id = ? WHERE id = ?").run(partnerB.id, credB);
     const syncRunId = insertSyncRun(db);
-    const catId = insertCategory(db, { name: "Groceries", sharingType: "fixed", fixedRatio: 0.5 });
+    const catId = insertCategory(db, { name: "GroceriesTest", sharingType: "fixed", fixedRatio: 0.5 });
     insertTransaction(db, { syncRunId, credentialId: credA, categoryId: catId, chargedAmount: -100, dedupHash: "h1" });
     insertTransaction(db, { syncRunId, credentialId: credB, categoryId: catId, chargedAmount: -200, dedupHash: "h2" });
 
