@@ -39,7 +39,10 @@ export interface Transaction {
 export interface TransactionWithCategory extends Transaction {
   categoryName: string | null;
   categoryColor: string | null;
+  categorySharingType: SharingType | null;
+  categoryFixedRatio: number | null;
   isExcluded: boolean;
+  inReviewQueue: boolean;
 }
 
 export type CategoryKind = "expense" | "income";

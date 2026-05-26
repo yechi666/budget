@@ -48,6 +48,7 @@ export function getTransactions(params: {
   kind?: TransactionKindFilter;
   provider?: string;
   credentialIds?: number[];
+  partnerId?: number;
 }) {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
