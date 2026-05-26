@@ -462,7 +462,12 @@
       "assignDescription": "בחרו לאיזה שותף שייך כל חשבון בנק או כרטיס אשראי.",
       "unassigned": "לא משויך",
       "unassignedWarning": "{count, plural, one {חשבון אחד אינו משויך} other {# חשבונות אינם משויכים}} ויוחרגו מחישוב היתרה.",
-      "noBanks": "לא חובר עדיין אף חשבון בנק."
+      "noBanks": "לא חובר עדיין אף חשבון בנק.",
+      "deleteButton": "מחיקת שותף",
+      "deleteConfirmTitle": "למחוק את {name}?",
+      "deleteConfirmDescription": "חשבונות הבנק שלהם יהפכו ללא משויכים. לא ניתן לבטל פעולה זו.",
+      "deleted": "השותף נמחק",
+      "deleteFailed": "מחיקת השותף נכשלה"
     }
   },
   "setup": {

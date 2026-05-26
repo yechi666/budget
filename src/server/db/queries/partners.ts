@@ -131,6 +131,13 @@ export function setCredentialPartner(
   return result.changes > 0;
 }
 
+export function deletePartner(workspaceId: number, partnerId: number): boolean {
+  const result = getDb()
+    .prepare("DELETE FROM partners WHERE workspace_id = ? AND id = ?")
+    .run(workspaceId, partnerId);
+  return result.changes > 0;
+}
+
 export function listCredentialsWithPartner(
   workspaceId: number
 ): CredentialWithPartner[] {

@@ -1,5 +1,5 @@
 import type { Partner, CredentialWithPartner } from "@/lib/types";
-import { fetchJSON } from "./_core";
+import { fetchJSON, withWorkspaceHeader } from "./_core";
 
 export function listPartners() {
   return fetchJSON<Partner[]>("/api/partners");
@@ -19,6 +19,17 @@ export function renamePartner(id: number, name: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
+}
+
+export async function deletePartner(id: number): Promise<void> {
+  const res = await fetch(`/api/partners/${id}`, {
+    method: "DELETE",
+    ...withWorkspaceHeader(),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "Request failed");
+    throw new Error(text);
+  }
 }
 
 export function listCredentialsWithPartner() {

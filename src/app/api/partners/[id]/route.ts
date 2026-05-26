@@ -1,6 +1,24 @@
 import { NextResponse } from "next/server";
-import { renamePartner } from "@/server/db/queries/partners";
+import { renamePartner, deletePartner } from "@/server/db/queries/partners";
 import { getWorkspaceIdFromRequest } from "@/server/lib/workspace-context";
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const workspaceId = getWorkspaceIdFromRequest(request);
+  const { id } = await params;
+  const partnerId = Number(id);
+  if (!Number.isFinite(partnerId) || partnerId <= 0) {
+    return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  }
+
+  const deleted = deletePartner(workspaceId, partnerId);
+  if (!deleted) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+  return new NextResponse(null, { status: 204 });
+}
 
 export async function PATCH(
   request: Request,

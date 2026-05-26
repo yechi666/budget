@@ -462,7 +462,12 @@
       "assignDescription": "Choose which partner owns each connected bank or card account.",
       "unassigned": "Unassigned",
       "unassignedWarning": "{count, plural, one {# account is unassigned} other {# accounts are unassigned}} and will be excluded from balance calculations.",
-      "noBanks": "No bank accounts connected yet."
+      "noBanks": "No bank accounts connected yet.",
+      "deleteButton": "Delete partner",
+      "deleteConfirmTitle": "Delete {name}?",
+      "deleteConfirmDescription": "Their bank accounts will become unassigned. This cannot be undone.",
+      "deleted": "Partner deleted",
+      "deleteFailed": "Failed to delete partner"
     }
   },
   "setup": {
