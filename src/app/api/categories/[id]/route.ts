@@ -4,10 +4,31 @@ import {
   setCategoryParent,
   updateCategoryBudgetMode,
   updateCategoryDescription,
+  updateCategorySharing,
+  updateCategoryChildrenSharing,
 } from "@/server/db/queries/categories";
 import { getWorkspaceIdFromRequest } from "@/server/lib/workspace-context";
+import { SHARING_TYPES, type SharingType } from "@/lib/types";
 
 const MAX_DESCRIPTION_LENGTH = 500;
+
+function isValidSharingType(value: unknown): value is SharingType {
+  return (
+    typeof value === "string" &&
+    SHARING_TYPES.includes(value as SharingType)
+  );
+}
+
+function isValidFixedRatio(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0 &&
+    value <= 1
+  );
+}
+
+const SHARING_TYPES_DISPLAY = SHARING_TYPES.map((t) => `'${t}'`).join(", ");
 
 export async function PATCH(
   request: Request,
@@ -31,6 +52,9 @@ export async function PATCH(
     budgetMode?: unknown;
     description?: unknown;
     parentId?: unknown;
+    sharingType?: unknown;
+    fixedRatio?: unknown;
+    propagateToChildren?: unknown;
   };
 
   let applied = false;
@@ -98,6 +122,50 @@ export async function PATCH(
         { status }
       );
     }
+    applied = true;
+  }
+
+  // fixedRatio on its own is meaningless: it always rides along with sharingType.
+  if (typed.sharingType === undefined && typed.fixedRatio !== undefined) {
+    return NextResponse.json(
+      { error: "fixedRatio requires sharingType" },
+      { status: 400 }
+    );
+  }
+
+  if (typed.sharingType !== undefined) {
+    if (!isValidSharingType(typed.sharingType)) {
+      return NextResponse.json(
+        { error: `sharingType must be one of: ${SHARING_TYPES_DISPLAY}` },
+        { status: 400 }
+      );
+    }
+    const sharingType = typed.sharingType;
+
+    if (typed.fixedRatio !== undefined && !isValidFixedRatio(typed.fixedRatio)) {
+      return NextResponse.json(
+        { error: "fixedRatio must be a finite number in [0,1]" },
+        { status: 400 }
+      );
+    }
+
+    // For 'fixed', use the supplied ratio or default 0.5.
+    // For 'individual' / 'ratioed', the ratio doesn't apply — the query
+    // layer coerces to null regardless of what we pass.
+    const fixedRatio =
+      sharingType === "fixed"
+        ? ((typed.fixedRatio as number | undefined) ?? 0.5)
+        : null;
+
+    const ok = updateCategorySharing(workspaceId, categoryId, sharingType, fixedRatio);
+    if (!ok) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+
+    if (typed.propagateToChildren === true) {
+      updateCategoryChildrenSharing(workspaceId, categoryId, sharingType, fixedRatio);
+    }
+
     applied = true;
   }
 
