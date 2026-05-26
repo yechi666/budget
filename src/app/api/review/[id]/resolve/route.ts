@@ -72,7 +72,7 @@ export async function POST(
 
       if (ctx.kind === "expense" || ctx.kind === "income") {
         const allCategories = getAllCategories(workspaceId);
-        const cat = allCategories.find((c) => c.id === categoryId);
+        const cat = allCategories.find((candidate) => candidate.id === categoryId);
         if (cat && (cat.kind === "expense" || cat.kind === "income")) {
           recordMerchantCategory(
             workspaceId,

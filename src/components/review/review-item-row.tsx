@@ -115,8 +115,8 @@ export function ReviewItemRow({ item }: Props) {
             }}
           >
             <option value="" disabled>{t("actionChangeCategory")}</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>{category.name}</option>
             ))}
           </select>
         ) : (

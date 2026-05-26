@@ -42,13 +42,19 @@ interface ReviewRow {
   accountLabel: string | null;
 }
 
+// Unknown-payer trigger uses the EFFECTIVE sharing type: the per-transaction
+// override (t.sharing_override) wins if set, else the category default
+// (c.sharing_type). When the user picks "Mark as mine" on a flagged item,
+// we set sharing_override = 'individual'; the row must drop out of the queue
+// because its effective type is now 'individual', even though the category
+// still has a shared type.
 const REVIEW_WHERE = `
   WHERE t.workspace_id = ?
     AND (
       t.needs_review = 1
       OR (
-        c.sharing_type IS NOT NULL
-        AND c.sharing_type != 'individual'
+        COALESCE(t.sharing_override, c.sharing_type) IS NOT NULL
+        AND COALESCE(t.sharing_override, c.sharing_type) != 'individual'
         AND (bc.partner_id IS NULL OR t.credential_id IS NULL)
       )
     )
