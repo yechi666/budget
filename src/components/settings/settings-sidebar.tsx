@@ -10,6 +10,7 @@ import {
   Sparkles,
   Layers,
   ShieldAlert,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +52,12 @@ const GROUPS: NavGroup[] = [
         labelKey: "bank",
         Icon: Landmark,
         match: (p) => p.startsWith("/settings/bank"),
+      },
+      {
+        href: "/settings/partners",
+        labelKey: "partners",
+        Icon: Users,
+        match: (p) => p.startsWith("/settings/partners"),
       },
       {
         href: "/settings/ai",

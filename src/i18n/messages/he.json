@@ -279,7 +279,8 @@
       "bank": "חשבונות בנק",
       "ai": "ספק AI",
       "categories": "קטגוריות",
-      "data": "נתונים ופרטיות"
+      "data": "נתונים ופרטיות",
+      "partners": "שותפים"
     },
     "workspace": {
       "nameTitle": "שם סביבת העבודה",
@@ -441,6 +442,32 @@
       "deleteEverything": "מחיקת הכל",
       "deleteFailedFallback": "המחיקה נכשלה",
       "deletedToast": "נמחקו {txCount} תנועות ו־{memoryCount} רשומות זיכרון"
+    },
+    "partners": {
+      "title": "שותפים",
+      "description": "תייגו כל חשבון בנק או כרטיס אשראי לפי השותף שהוא שייך אליו.",
+      "setupCardTitle": "מי משתמש באפליקציה?",
+      "setupCardDesc": "הזינו את שני השמות כדי להתחיל. ניתן לשנות את השמות בכל עת.",
+      "partner1Label": "שותף 1",
+      "partner2Label": "שותף 2",
+      "namePlaceholder": "לדוגמה: רני",
+      "getStarted": "בואו נתחיל",
+      "setupSaved": "השותפים הוגדרו",
+      "saveFailed": "השמירה נכשלה",
+      "renamed": "שם השותף עודכן",
+      "namesCardTitle": "שמות השותפים",
+      "namesCardDesc": "ערכו שם ולחצו שמור.",
+      "saveButton": "שמור",
+      "assignTitle": "שיוך חשבונות",
+      "assignDescription": "בחרו לאיזה שותף שייך כל חשבון בנק או כרטיס אשראי.",
+      "unassigned": "לא משויך",
+      "unassignedWarning": "{count, plural, one {חשבון אחד אינו משויך} other {# חשבונות אינם משויכים}} ויוחרגו מחישוב היתרה.",
+      "noBanks": "לא חובר עדיין אף חשבון בנק.",
+      "deleteButton": "מחיקת שותף",
+      "deleteConfirmTitle": "למחוק את {name}?",
+      "deleteConfirmDescription": "חשבונות הבנק שלהם יהפכו ללא משויכים. לא ניתן לבטל פעולה זו.",
+      "deleted": "השותף נמחק",
+      "deleteFailed": "מחיקת השותף נכשלה"
     }
   },
   "setup": {
@@ -714,8 +741,12 @@
         "placeholder": "הסיסמה שאתם משתמשים בה ב־digital.isracard.co.il",
         "hint": "אותה סיסמה שאתם משתמשים בה להתחברות באתר ישראכרט."
       },
-      "username": { "label": "שם משתמש" },
-      "userCode": { "label": "קוד משתמש" },
+      "username": {
+        "label": "שם משתמש"
+      },
+      "userCode": {
+        "label": "קוד משתמש"
+      },
       "num": {
         "label": "מספר חשבון",
         "discountPlaceholder": "מספר חשבון דיסקונט שלכם",
