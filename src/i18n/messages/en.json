@@ -34,6 +34,7 @@
     "home": "Home",
     "budget": "Budget",
     "transactions": "Transactions",
+    "review": "Review",
     "settings": "Settings",
     "starOnGitHub": "Star on GitHub",
     "brandTagline": "YOUR MONEY · OPEN SOURCE"
@@ -778,6 +779,17 @@
         "hint": "Where the SMS one-time code will be sent. International format including the country code."
       }
     }
+  },
+  "review": {
+    "pageTitle": "Review queue",
+    "emptyTitle": "All caught up",
+    "emptyBody": "No transactions need your attention.",
+    "triggerLowConfidence": "Low AI confidence",
+    "triggerUnknownPayer": "Unknown payer",
+    "actionConfirm": "Confirm",
+    "actionChangeCategory": "Change category",
+    "actionMarkIndividual": "Mark as mine",
+    "actionGoToPartners": "Assign account"
   },
   "ollamaModels": {
     "llama3_2_3b": "Recommended. Fast and accurate enough for categorizing.",

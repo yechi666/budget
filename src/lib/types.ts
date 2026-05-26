@@ -757,3 +757,12 @@ export interface ExcludedMerchant {
   merchantKey: string;
   createdAt: string;
 }
+
+export type ReviewTrigger = "low-confidence" | "unknown-payer";
+
+export interface ReviewItem {
+  transaction: TransactionWithCategory;
+  triggers: ReviewTrigger[];
+  suggestedCategoryId: number | null;
+  suggestedSharingType: SharingType | null;
+}

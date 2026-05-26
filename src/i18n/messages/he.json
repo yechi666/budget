@@ -34,6 +34,7 @@
     "home": "בית",
     "budget": "תקציב",
     "transactions": "תנועות",
+    "review": "סקירה",
     "settings": "הגדרות",
     "starOnGitHub": "תייגו ב־GitHub",
     "brandTagline": "הכסף שלכם · קוד פתוח"
@@ -778,6 +779,17 @@
         "hint": "לאן יישלח קוד ה־SMS החד־פעמי. פורמט בינלאומי כולל קידומת המדינה."
       }
     }
+  },
+  "review": {
+    "pageTitle": "תור סקירה",
+    "emptyTitle": "הכל מסודר",
+    "emptyBody": "אין עסקאות שדורשות תשומת לב.",
+    "triggerLowConfidence": "ביטחון AI נמוך",
+    "triggerUnknownPayer": "משלם לא ידוע",
+    "actionConfirm": "אישור",
+    "actionChangeCategory": "החלף קטגוריה",
+    "actionMarkIndividual": "סמן כאישי",
+    "actionGoToPartners": "שיוך חשבון"
   },
   "ollamaModels": {
     "llama3_2_3b": "מומלץ. מהיר ומדויק מספיק לסיווג.",
