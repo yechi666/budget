@@ -158,6 +158,11 @@ interface QueryParams {
   /** @deprecated Use credentialIds */
   credentialId?: number;
   credentialIds?: number[];
+  /**
+   * Filter to transactions on credentials assigned to this partner.
+   * Composes (intersects) with credentialIds when both are set.
+   */
+  partnerId?: number;
 }
 
 function appendCredentialIdsFilter(
@@ -187,7 +192,10 @@ const TRANSACTION_LIST_FROM = `
 
 const TRANSACTION_LIST_SELECT = `
   SELECT t.*, c.name AS category_name, c.color AS category_color,
-         bc.label AS account_label
+         c.sharing_type AS category_sharing_type,
+         c.fixed_ratio AS category_fixed_ratio,
+         bc.label AS account_label,
+         bc.partner_id AS bc_partner_id
   ${TRANSACTION_LIST_FROM}`;
 
 export function queryTransactions(
@@ -236,6 +244,13 @@ export function queryTransactions(
         ? [params.credentialId]
         : undefined;
   appendCredentialIdsFilter(conditions, values, credentialIds, "t.");
+
+  if (params.partnerId !== undefined && Number.isFinite(params.partnerId) && params.partnerId > 0) {
+    conditions.push(
+      "t.credential_id IN (SELECT id FROM bank_credentials WHERE workspace_id = ? AND partner_id = ?)"
+    );
+    values.push(workspaceId, params.partnerId);
+  }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
@@ -566,7 +581,10 @@ interface TransactionRow {
   sharing_override: string | null;
   category_name?: string | null;
   category_color?: string | null;
+  category_sharing_type?: string | null;
+  category_fixed_ratio?: number | null;
   account_label?: string | null;
+  bc_partner_id?: number | null;
 }
 
 function mapTransactionRow(row: unknown): TransactionWithCategory {
@@ -602,6 +620,13 @@ function mapTransactionRow(row: unknown): TransactionWithCategory {
     sharingOverride: (r.sharing_override ?? null) as SharingType | null,
     categoryName: r.category_name ?? null,
     categoryColor: r.category_color ?? null,
+    categorySharingType: (r.category_sharing_type ?? null) as SharingType | null,
+    categoryFixedRatio: r.category_fixed_ratio ?? null,
+    inReviewQueue:
+      r.needs_review === 1 ||
+      (r.category_sharing_type != null &&
+        r.category_sharing_type !== "individual" &&
+        (r.bc_partner_id == null || r.credential_id == null)),
   };
 }
 

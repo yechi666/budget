@@ -28,6 +28,10 @@ export async function GET(request: Request) {
     .map((v) => Number(v))
     .filter((n) => Number.isFinite(n) && n > 0);
 
+  const partnerIdRaw = searchParams.get("partnerId");
+  const partnerIdParsed = partnerIdRaw != null ? Number(partnerIdRaw) : NaN;
+  const partnerId = Number.isFinite(partnerIdParsed) && partnerIdParsed > 0 ? partnerIdParsed : undefined;
+
   const result = queryTransactions(workspaceId, {
     from: searchParams.get("from") ?? undefined,
     to: searchParams.get("to") ?? undefined,
@@ -47,6 +51,7 @@ export async function GET(request: Request) {
     kind: parseKind(searchParams.get("kind")),
     provider: searchParams.get("provider") ?? undefined,
     credentialIds: credentialIds.length > 0 ? credentialIds : undefined,
+    partnerId,
   });
 
   return NextResponse.json(result);

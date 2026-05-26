@@ -14,6 +14,7 @@ import {
   getTransactions,
   getTransactionsSummary,
   listIntegrations,
+  listPartners,
 } from "@/lib/api";
 import type { TransactionKindFilter } from "@/lib/api";
 import { expandCategoryFilterIds } from "@/lib/transaction-filters";
@@ -36,6 +37,7 @@ export function TransactionsPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<number[]>([]);
   const [accountFilter, setAccountFilter] = useState<number[]>([]);
+  const [partnerFilter, setPartnerFilter] = useState<number | null>(null);
   const [page, setPage] = useState(0);
   const [kind, setKind] = useState<TransactionKindFilter>("all");
   const [sortField, setSortField] = useState<TransactionSortField>("date");
@@ -57,6 +59,10 @@ export function TransactionsPage() {
     queryKey: ["integrations"],
     queryFn: () => listIntegrations(),
   });
+  const partnersQuery = useQuery({
+    queryKey: ["partners"],
+    queryFn: () => listPartners(),
+  });
 
   const expandedCategoryIds = expandCategoryFilterIds(
     categoryFilter,
@@ -71,6 +77,7 @@ export function TransactionsPage() {
       search,
       categoryFilter,
       accountFilter,
+      partnerFilter,
       page,
       kind,
       sortField,
@@ -84,6 +91,7 @@ export function TransactionsPage() {
         categoryIds: expandedCategoryIds,
         credentialIds:
           accountFilter.length > 0 ? accountFilter : undefined,
+        partnerId: partnerFilter ?? undefined,
         limit: 50,
         offset: page * 50,
         kind,
@@ -134,28 +142,70 @@ export function TransactionsPage() {
           loading={summaryInitialLoading}
         />
 
-        <div className="flex flex-wrap items-center gap-1.5 rounded-full border border-border bg-card p-1 w-fit">
-          {filterOptions.map((opt) => {
-            const active = kind === opt.value;
-            return (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-1.5 rounded-full border border-border bg-card p-1 w-fit">
+            {filterOptions.map((opt) => {
+              const active = kind === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setKind(opt.value);
+                    setPage(0);
+                    setCategoryFilter([]);
+                  }}
+                  className={
+                    active
+                      ? "rounded-full bg-foreground px-4 py-1.5 text-xs font-medium text-background transition-colors"
+                      : "rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+          {(partnersQuery.data?.length ?? 0) > 0 ? (
+            <div className="flex flex-wrap items-center gap-1.5 rounded-full border border-border bg-card p-1 w-fit">
               <button
-                key={opt.value}
                 type="button"
                 onClick={() => {
-                  setKind(opt.value);
+                  setPartnerFilter(null);
+                  setAccountFilter([]);
                   setPage(0);
-                  setCategoryFilter([]);
                 }}
                 className={
-                  active
+                  partnerFilter === null && accountFilter.length === 0
                     ? "rounded-full bg-foreground px-4 py-1.5 text-xs font-medium text-background transition-colors"
                     : "rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 }
               >
-                {opt.label}
+                {t("filterAllAccounts")}
               </button>
-            );
-          })}
+              {partnersQuery.data?.map((partner) => {
+                const active = partnerFilter === partner.id;
+                return (
+                  <button
+                    key={partner.id}
+                    type="button"
+                    onClick={() => {
+                      setPartnerFilter(partner.id);
+                      setAccountFilter([]);
+                      setPage(0);
+                    }}
+                    className={
+                      active
+                        ? "rounded-full bg-foreground px-4 py-1.5 text-xs font-medium text-background transition-colors"
+                        : "rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    }
+                  >
+                    {partner.name}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
 
         <TransactionsTable

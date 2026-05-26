@@ -123,6 +123,9 @@ function mapReviewRow(row: ReviewRow): ReviewItem {
     sharingOverride: (row.sharingOverride ?? null) as SharingType | null,
     categoryName: row.categoryName ?? null,
     categoryColor: row.categoryColor ?? null,
+    categorySharingType: (row.sharingType ?? null) as SharingType | null,
+    categoryFixedRatio: row.fixedRatio ?? null,
+    inReviewQueue: triggers.length > 0,
   };
 
   return {
