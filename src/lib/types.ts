@@ -757,3 +757,33 @@ export interface ExcludedMerchant {
   merchantKey: string;
   createdAt: string;
 }
+
+export interface Settlement {
+  id: number;
+  workspaceId: number;
+  fromPartnerId: number;
+  toPartnerId: number;
+  amount: number;
+  date: string;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface MonthlyBalanceRow {
+  month: string;
+  label: string;
+  sharedTotal: number;
+  partnerAShare: number;
+  partnerBShare: number;
+  partnerAPaid: number;
+  partnerBPaid: number;
+  netDelta: number;
+}
+
+export interface BalanceResponse {
+  runningBalance: number;
+  owedByPartnerId: number;
+  owedToPartnerId: number;
+  months: MonthlyBalanceRow[];
+  settlements: Settlement[];
+}

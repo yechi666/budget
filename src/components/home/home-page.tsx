@@ -17,6 +17,7 @@ import { RecentTransactionsCard } from "./recent-transactions-card";
 import { TopMerchantsCard } from "./top-merchants-card";
 import { NeedsAttentionCard } from "./needs-attention-card";
 import { BankHealthCard } from "./bank-health-card";
+import { BalanceCard } from "./balance-card";
 import { SyncStatusPill } from "./sync-status-pill";
 import { SyncFailureBanner } from "./sync-failure-banner";
 import { CardError, CardSkeleton } from "./card-shell";
@@ -123,6 +124,9 @@ export function HomePage() {
           {renderSection("topMerchants", data, isLoading, isError, ROW_2_SIDE, skeletonLabels)}
           {renderSection("needsAttention", data, isLoading, isError, ROW_2, skeletonLabels)}
           {renderSection("bankHealth", data, isLoading, isError, ROW_2_SIDE, skeletonLabels)}
+          <div className="col-span-12 md:col-span-6 lg:col-span-4">
+            <BalanceCard />
+          </div>
         </div>
       </div>
     </>

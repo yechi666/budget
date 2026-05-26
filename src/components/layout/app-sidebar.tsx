@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Wallet,
   ArrowLeftRight,
+  Scale,
   Settings as SettingsIcon,
   Star,
 } from "lucide-react";
@@ -49,6 +50,12 @@ const NAV: NavDef[] = [
     labelKey: "transactions",
     Icon: ArrowLeftRight,
     match: (p: string) => p.startsWith("/transactions"),
+  },
+  {
+    href: "/balance",
+    labelKey: "balance",
+    Icon: Scale,
+    match: (p: string) => p.startsWith("/balance"),
   },
 ];
 
