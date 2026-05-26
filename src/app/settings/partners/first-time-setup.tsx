@@ -84,7 +84,6 @@ export function FirstTimeSetup({ existingPartners }: Props) {
               value={secondPartnerName}
               onChange={(e) => setSecondPartnerName(e.target.value)}
               placeholder={tPartners("namePlaceholder")}
-              disabled={existingPartners.length >= 2}
             />
           </div>
         </div>
