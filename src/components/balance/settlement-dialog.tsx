@@ -36,7 +36,9 @@ export function SettlementDialog({ open, onClose, partnerA, partnerB }: Props) {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(today);
   const [note, setNote] = useState("");
-  // direction: "AtoB" means partnerA paid for partnerB (from=B, to=A), "BtoA" means opposite
+  // direction: "AtoB" means partner A transferred money to partner B
+  // (this is the natural reading of "A paid B" in the UI label).
+  // Settlement from_partner_id = the one who transferred (A here).
   const [direction, setDirection] = useState<string>("AtoB");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -69,9 +71,10 @@ export function SettlementDialog({ open, onClose, partnerA, partnerB }: Props) {
       return;
     }
 
-    // direction "AtoB" means A paid (credit to A), so B owes A => from=B, to=A
-    const fromPartnerId = direction === "AtoB" ? partnerB.id : partnerA.id;
-    const toPartnerId = direction === "AtoB" ? partnerA.id : partnerB.id;
+    // direction "AtoB" => A transferred money to B => from=A, to=B.
+    // direction "BtoA" => B transferred money to A => from=B, to=A.
+    const fromPartnerId = direction === "AtoB" ? partnerA.id : partnerB.id;
+    const toPartnerId = direction === "AtoB" ? partnerB.id : partnerA.id;
 
     setSubmitting(true);
     try {

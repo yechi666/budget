@@ -210,14 +210,14 @@ export function getBalance(workspaceId: number): BalanceResponse | null {
     }
   }
 
-  // Apply settlements
-  // A settlement "from X to Y" means X paid Y, reducing X's owed amount.
-  // rawBalance > 0 means A is owed (B owes A). B paying A reduces rawBalance.
-  // So if from=B (partnerB pays A), rawBalance decreases.
-  // If from=A (partnerA pays B), rawBalance increases (A's credit grows less -- actually A is paying).
-  // When from=partnerA: A is paying B, meaning B was owed something, so rawBalance was negative.
-  // A paying reduces how negative rawBalance is: rawBalance += amount.
-  // When from=partnerB: B is paying A, reducing rawBalance: rawBalance -= amount.
+  // Apply settlements.
+  //
+  // Sign convention: rawBalance > 0 means partner A is owed money (B owes A).
+  //                  rawBalance < 0 means partner B is owed money (A owes B).
+  //
+  // A settlement "from X to Y" means X transferred money to Y, settling part of the debt.
+  //   from=A (A pays B): if A owed B (rawBalance < 0), this brings it toward 0; rawBalance += amount.
+  //   from=B (B pays A): if B owed A (rawBalance > 0), this brings it toward 0; rawBalance -= amount.
   const settlements = listSettlements(workspaceId);
   for (const settlement of settlements) {
     if (settlement.fromPartnerId === partnerA.id) {
@@ -234,6 +234,8 @@ export function getBalance(workspaceId: number): BalanceResponse | null {
     .sort(([monthA], [monthB]) => monthA.localeCompare(monthB))
     .map(([month, bucket]) => ({
       month,
+      // Month label uses a stable, locale-independent format (English month names).
+      // Localized rendering happens in the UI layer using the user's chosen locale.
       label: new Intl.DateTimeFormat("en-US", {
         month: "long",
         year: "numeric",

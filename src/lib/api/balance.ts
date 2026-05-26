@@ -1,5 +1,5 @@
 import type { BalanceResponse, Settlement } from "@/lib/types";
-import { fetchJSON } from "./_core";
+import { fetchJSON, withWorkspaceHeader } from "./_core";
 
 export function getBalance() {
   return fetchJSON<BalanceResponse>("/api/balance");
@@ -23,8 +23,16 @@ export function createSettlement(input: {
   });
 }
 
-export function deleteSettlement(id: number) {
-  return fetch(`/api/balance/settlements/${id}`, {
-    method: "DELETE",
-  });
+export async function deleteSettlement(id: number): Promise<void> {
+  // Raw fetch (not fetchJSON) because the route returns 204 No Content,
+  // which would make fetchJSON throw on res.json(). Use withWorkspaceHeader
+  // directly so the x-workspace-id header still gets injected.
+  const res = await fetch(
+    `/api/balance/settlements/${id}`,
+    withWorkspaceHeader({ method: "DELETE" })
+  );
+  if (!res.ok) {
+    const text = await res.text().catch(() => "Request failed");
+    throw new Error(text);
+  }
 }
