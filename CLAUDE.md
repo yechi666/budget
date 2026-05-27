@@ -2,8 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-@AGENTS.md
-@STANDARDS.md
+@docs/dev/AGENTS.md
+@docs/dev/STANDARDS.md
 
 # Spent: project context
 

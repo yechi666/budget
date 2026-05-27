@@ -38,7 +38,9 @@ yarn-error.log*
 /data/
 
 # claude code config + session artifacts (per-developer, not shared)
-/.claude/
+# everything under /.claude/ is ignored EXCEPT /.claude/skills/, which is tracked
+/.claude/*
+!/.claude/skills/
 /.superpowers/
 /.mcp.json
 /work.md
