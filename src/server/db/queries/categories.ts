@@ -1,10 +1,10 @@
 import "server-only";
 
 import { getDb } from "../index";
-import type { Category, CategoryKind } from "@/lib/types";
+import type { Category, CategoryKind, SharingType } from "@/lib/types";
 
 const CATEGORY_COLUMNS =
-  "id, parent_id as parentId, name, color, icon, kind, budget_mode as budgetMode, description";
+  "id, parent_id as parentId, name, color, icon, kind, budget_mode as budgetMode, description, sharing_type as sharingType, fixed_ratio as fixedRatio";
 
 export function getAllCategories(
   workspaceId: number,
@@ -244,6 +244,8 @@ export function createParentCategory(
     kind: input.kind,
     budgetMode: "budgeted",
     description,
+    sharingType: "individual" as SharingType,
+    fixedRatio: 0.5,
   };
 }
 
@@ -346,7 +348,37 @@ export function ensureCategory(
     kind,
     budgetMode: "budgeted",
     description: null,
+    sharingType: "individual" as SharingType,
+    fixedRatio: 0.5,
   };
+}
+
+export function updateCategorySharing(
+  workspaceId: number,
+  id: number,
+  sharingType: SharingType,
+  fixedRatio: number
+): boolean {
+  const result = getDb()
+    .prepare(
+      "UPDATE categories SET sharing_type = ?, fixed_ratio = ? WHERE workspace_id = ? AND id = ?"
+    )
+    .run(sharingType, fixedRatio, workspaceId, id);
+  return result.changes > 0;
+}
+
+export function updateCategoryChildrenSharing(
+  workspaceId: number,
+  parentId: number,
+  sharingType: SharingType,
+  fixedRatio: number
+): number {
+  const result = getDb()
+    .prepare(
+      "UPDATE categories SET sharing_type = ?, fixed_ratio = ? WHERE workspace_id = ? AND parent_id = ?"
+    )
+    .run(sharingType, fixedRatio, workspaceId, parentId);
+  return result.changes;
 }
 
 export interface CategoryChildRef {

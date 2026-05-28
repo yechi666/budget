@@ -38,8 +38,9 @@ import {
   updateBudget,
   updateCategoryBudgetMode,
   updateCategoryDescription,
+  updateCategorySharing,
 } from "@/lib/api";
-import type { Category, CategoryWithData } from "@/lib/types";
+import type { Category, CategoryWithData, SharingType } from "@/lib/types";
 
 const NONE_VALUE = "__none__";
 const DESCRIPTION_MAX = 500;
@@ -153,6 +154,11 @@ function Body({
         <GroupSection
           category={category}
           eligibleParents={eligibleParents}
+        />
+
+        <SharingSection
+          category={category}
+          childCategories={childCategories}
         />
 
         <DescriptionSection category={category} />
@@ -533,6 +539,166 @@ function DescriptionSection({ category }: { category: Category }) {
         </div>
       </div>
     </section>
+  );
+}
+
+function SharingSection({
+  category,
+  childCategories,
+}: {
+  category: Category;
+  childCategories: Category[];
+}) {
+  const t = useTranslations("settings.categories");
+  const queryClient = useQueryClient();
+  const [propagateOpen, setPropagateOpen] = useState(false);
+  const [pendingSharing, setPendingSharing] = useState<{
+    sharingType: SharingType;
+    fixedRatio: number;
+  } | null>(null);
+  const committedRatio = String(Math.round((category.fixedRatio ?? 0.5) * 100));
+  const [ratioDisplay, setRatioDisplay] = useState(committedRatio);
+  // When the saved ratio changes (e.g. after a successful mutation or category
+  // switch), snap the local display value to the new committed ratio.
+  const [prevCommitted, setPrevCommitted] = useState(committedRatio);
+  if (committedRatio !== prevCommitted) {
+    setPrevCommitted(committedRatio);
+    setRatioDisplay(committedRatio);
+  }
+
+  const isParentWithChildren =
+    category.parentId === null && childCategories.length > 0;
+
+  const mutation = useMutation({
+    mutationFn: (body: {
+      sharingType: SharingType;
+      fixedRatio?: number;
+      propagateToChildren?: boolean;
+    }) => updateCategorySharing(category.id, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success(t("sharingUpdated"));
+    },
+    onError: () => {
+      toast.error(t("sharingUpdateFailed"));
+    },
+  });
+
+  const handleSharingTypeChange = (value: string | null) => {
+    if (!value) return;
+    const sharingType = value as SharingType;
+    let fixedRatio = 0.5;
+    if (sharingType === "fixed") {
+      const parsed = parseFloat(ratioDisplay) / 100;
+      if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 1) {
+        fixedRatio = parsed;
+      }
+    }
+
+    if (isParentWithChildren) {
+      setPendingSharing({ sharingType, fixedRatio });
+      setPropagateOpen(true);
+    } else {
+      mutation.mutate({ sharingType, fixedRatio });
+    }
+  };
+
+  const handleRatioBlur = () => {
+    if (category.sharingType !== "fixed") return;
+    const parsed = parseFloat(ratioDisplay);
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) return;
+    const fixedRatio = parsed / 100;
+    if (Math.abs(fixedRatio - (category.fixedRatio ?? 0.5)) < 0.0001) return;
+
+    if (isParentWithChildren) {
+      setPendingSharing({ sharingType: "fixed", fixedRatio });
+      setPropagateOpen(true);
+    } else {
+      mutation.mutate({ sharingType: "fixed", fixedRatio });
+    }
+  };
+
+  const handlePropagateConfirm = () => {
+    if (!pendingSharing) return;
+    mutation.mutate({ ...pendingSharing, propagateToChildren: true });
+    setPropagateOpen(false);
+    setPendingSharing(null);
+  };
+
+  const handlePropagateSkip = () => {
+    if (!pendingSharing) return;
+    mutation.mutate(pendingSharing);
+    setPropagateOpen(false);
+    setPendingSharing(null);
+  };
+
+  return (
+    <>
+      <section>
+        <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          {t("sharingLabel")}
+        </div>
+        <div className="mt-3 rounded-xl border border-border bg-card p-4 space-y-2">
+          <p className="text-xs text-muted-foreground">{t("sharingDescription")}</p>
+          <Select
+            value={category.sharingType ?? "individual"}
+            onValueChange={handleSharingTypeChange}
+          >
+            <SelectTrigger>
+              <SelectValue>
+                {(value: string) => {
+                  if (value === "fixed") return t("sharingFixed");
+                  if (value === "ratioed") return t("sharingRatioed");
+                  return t("sharingIndividual");
+                }}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="individual">{t("sharingIndividual")}</SelectItem>
+              <SelectItem value="fixed">{t("sharingFixed")}</SelectItem>
+              <SelectItem value="ratioed">{t("sharingRatioed")}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {category.sharingType === "fixed" ? (
+            <div className="space-y-1.5">
+              <Label htmlFor={`ratio-${category.id}`}>{t("sharingRatioLabel")}</Label>
+              <Input
+                id={`ratio-${category.id}`}
+                type="number"
+                min={0}
+                max={100}
+                value={ratioDisplay}
+                onChange={(e) => setRatioDisplay(e.target.value)}
+                onBlur={handleRatioBlur}
+              />
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <Dialog open={propagateOpen} onOpenChange={setPropagateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("propagateTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("propagateDescription", { count: childCategories.length })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handlePropagateSkip}>
+              {t("propagateSkip")}
+            </Button>
+            <Button
+              onClick={handlePropagateConfirm}
+              disabled={mutation.isPending}
+            >
+              {t("propagateApply")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

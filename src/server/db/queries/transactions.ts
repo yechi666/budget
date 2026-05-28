@@ -8,6 +8,7 @@ import type {
   MonthlySummary,
   MerchantSummary,
   CategoryBreakdown,
+  SharingType,
 } from "@/lib/types";
 import {
   isTransactionSortField,
@@ -157,6 +158,11 @@ interface QueryParams {
   /** @deprecated Use credentialIds */
   credentialId?: number;
   credentialIds?: number[];
+  /**
+   * Filter to transactions on credentials assigned to this partner.
+   * Composes (intersects) with credentialIds when both are set.
+   */
+  partnerId?: number;
 }
 
 function appendCredentialIdsFilter(
@@ -186,7 +192,10 @@ const TRANSACTION_LIST_FROM = `
 
 const TRANSACTION_LIST_SELECT = `
   SELECT t.*, c.name AS category_name, c.color AS category_color,
-         bc.label AS account_label
+         c.sharing_type AS category_sharing_type,
+         c.fixed_ratio AS category_fixed_ratio,
+         bc.label AS account_label,
+         bc.partner_id AS bc_partner_id
   ${TRANSACTION_LIST_FROM}`;
 
 export function queryTransactions(
@@ -235,6 +244,13 @@ export function queryTransactions(
         ? [params.credentialId]
         : undefined;
   appendCredentialIdsFilter(conditions, values, credentialIds, "t.");
+
+  if (params.partnerId !== undefined && Number.isFinite(params.partnerId) && params.partnerId > 0) {
+    conditions.push(
+      "t.credential_id IN (SELECT id FROM bank_credentials WHERE workspace_id = ? AND partner_id = ?)"
+    );
+    values.push(workspaceId, params.partnerId);
+  }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
@@ -562,9 +578,13 @@ interface TransactionRow {
   is_excluded: number;
   created_at: string;
   updated_at: string;
+  sharing_override: string | null;
   category_name?: string | null;
   category_color?: string | null;
+  category_sharing_type?: string | null;
+  category_fixed_ratio?: number | null;
   account_label?: string | null;
+  bc_partner_id?: number | null;
 }
 
 function mapTransactionRow(row: unknown): TransactionWithCategory {
@@ -597,8 +617,26 @@ function mapTransactionRow(row: unknown): TransactionWithCategory {
     isExcluded: r.is_excluded === 1,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    sharingOverride: (r.sharing_override ?? null) as SharingType | null,
     categoryName: r.category_name ?? null,
     categoryColor: r.category_color ?? null,
+    categorySharingType: (r.category_sharing_type ?? null) as SharingType | null,
+    categoryFixedRatio: r.category_fixed_ratio ?? null,
+    // Effective sharing type follows the same convention as the review queue:
+    // per-transaction override wins over the category default. Without this,
+    // a "Mark as mine" resolution (sets sharing_override='individual') would
+    // leave inReviewQueue=true and the flag icon would never clear.
+    inReviewQueue:
+      r.needs_review === 1 ||
+      (() => {
+        const effectiveSharingType =
+          r.sharing_override ?? r.category_sharing_type ?? null;
+        return (
+          effectiveSharingType != null &&
+          effectiveSharingType !== "individual" &&
+          (r.bc_partner_id == null || r.credential_id == null)
+        );
+      })(),
   };
 }
 
@@ -628,6 +666,21 @@ export function setTransactionNeedsReview(
        WHERE workspace_id = ? AND id = ?`
     )
     .run(value ? 1 : 0, workspaceId, id);
+}
+
+export function setTransactionSharingOverride(
+  workspaceId: number,
+  id: number,
+  override: SharingType | null
+): boolean {
+  const result = getDb()
+    .prepare(
+      `UPDATE transactions
+       SET sharing_override = ?, updated_at = datetime('now')
+       WHERE workspace_id = ? AND id = ?`
+    )
+    .run(override, workspaceId, id);
+  return result.changes > 0;
 }
 
 interface TransactionContext {

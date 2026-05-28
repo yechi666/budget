@@ -23,6 +23,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { WorkspaceSwitcher } from "./workspace-switcher";
+import { ReviewNavBadge } from "./review-nav-badge";
 
 interface NavDef {
   href: string;
@@ -115,6 +116,7 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+              <ReviewNavBadge />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

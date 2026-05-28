@@ -34,6 +34,7 @@
     "home": "בית",
     "budget": "תקציב",
     "transactions": "תנועות",
+    "review": "סקירה",
     "settings": "הגדרות",
     "starOnGitHub": "תייגו ב־GitHub",
     "brandTagline": "הכסף שלכם · קוד פתוח"
@@ -128,6 +129,17 @@
   },
   "transactions": {
     "pageTitle": "תנועות",
+    "sharing": "שיתוף",
+    "sharingChipShared": "משותף",
+    "sharingChipRatioed": "משותף %",
+    "sharingChipIndividual": "אישי",
+    "sharingChangeTitle": "שיתוף לעסקה זו",
+    "sharingClearOverride": "השתמש בברירת מחדל",
+    "sharingUpdateFailed": "לא ניתן לעדכן שיתוף",
+    "filterPartner": "חשבון / שותף",
+    "filterAllAccounts": "כל החשבונות",
+    "filterIndividualAccounts": "חשבונות בודדים",
+    "reviewFlagTitle": "בתור הסקירה",
     "filterAll": "כל הפעילות",
     "filterIncome": "הכנסות",
     "filterExpenses": "הוצאות",
@@ -415,7 +427,19 @@
       "deletedToast": "הקטגוריה נמחקה. {count, plural, =0 {} one {עסקה אחת הוסרה מהקטגוריה.} other {# עסקאות הוסרו מהקטגוריה.}}",
       "deleteHasChildren": "מחקו קודם כל תת-קטגוריה שמופיעה ברשימה של הקבוצה.",
       "deleteHasChildrenNamed": "מחקו קודם את תת-הקטגוריות: {names}",
-      "deleteFailed": "לא ניתן למחוק את הקטגוריה"
+      "deleteFailed": "לא ניתן למחוק את הקטגוריה",
+      "sharingLabel": "שיתוף",
+      "sharingDescription": "כיצד הוצאות בקטגוריה זו מתחלקות.",
+      "sharingIndividual": "אישי",
+      "sharingFixed": "קבוע (50/50)",
+      "sharingRatioed": "לפי יחס (בקרוב)",
+      "sharingRatioLabel": "חלק השותף (%)",
+      "sharingUpdated": "השיתוף עודכן",
+      "sharingUpdateFailed": "לא ניתן לעדכן שיתוף",
+      "propagateTitle": "להחיל על תת-קטגוריות?",
+      "propagateDescription": "להחיל הגדרת שיתוף זו על כל {count} תת-קטגוריות של קבוצה זו?",
+      "propagateApply": "החל על הכל",
+      "propagateSkip": "רק קטגוריה זו"
     },
     "data": {
       "title": "נתונים ופרטיות",
@@ -771,6 +795,17 @@
         "hint": "לאן יישלח קוד ה־SMS החד־פעמי. פורמט בינלאומי כולל קידומת המדינה."
       }
     }
+  },
+  "review": {
+    "pageTitle": "תור סקירה",
+    "emptyTitle": "הכל מסודר",
+    "emptyBody": "אין עסקאות שדורשות תשומת לב.",
+    "triggerLowConfidence": "ביטחון AI נמוך",
+    "triggerUnknownPayer": "משלם לא ידוע",
+    "actionConfirm": "אישור",
+    "actionChangeCategory": "החלף קטגוריה",
+    "actionMarkIndividual": "סמן כאישי",
+    "actionGoToPartners": "שיוך חשבון"
   },
   "ollamaModels": {
     "llama3_2_3b": "מומלץ. מהיר ומדויק מספיק לסיווג.",

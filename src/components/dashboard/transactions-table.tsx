@@ -60,6 +60,9 @@ import {
   toggleCategoryFilterSelection,
 } from "@/lib/transaction-filters";
 import { SortableTableHead } from "@/components/transactions/sortable-table-head";
+import { SharingChip } from "@/components/transactions/sharing-chip";
+import { Flag } from "lucide-react";
+import Link from "next/link";
 import type { SortOrder, TransactionSortField } from "@/lib/transaction-sort";
 import { cn } from "@/lib/utils";
 import { ProviderBadge } from "@/components/setup/provider-badge";
@@ -438,6 +441,7 @@ export function TransactionsTable({
                     sortAscLabel={t("sortAsc")}
                     sortDescLabel={t("sortDesc")}
                   />
+                  <TableHead className="w-[90px]">{t("sharing")}</TableHead>
                   <SortableTableHead
                     label={t("headerAccount")}
                     field="account"
@@ -478,12 +482,24 @@ export function TransactionsTable({
                       className="transition-colors duration-200 hover:bg-muted/50"
                     >
                       <TableCell>
-                        <div style={{ color: directionColor }}>
-                          {isIncome ? (
-                            <ArrowUpRight className="h-4 w-4" />
-                          ) : (
-                            <ArrowDownRight className="h-4 w-4" />
-                          )}
+                        <div className="flex items-center gap-1">
+                          {txn.inReviewQueue ? (
+                            <Link
+                              href="/review"
+                              title={t("reviewFlagTitle")}
+                              aria-label={t("reviewFlagTitle")}
+                              className="text-amber-500 hover:text-amber-600"
+                            >
+                              <Flag className="h-3.5 w-3.5" />
+                            </Link>
+                          ) : null}
+                          <div style={{ color: directionColor }}>
+                            {isIncome ? (
+                              <ArrowUpRight className="h-4 w-4" />
+                            ) : (
+                              <ArrowDownRight className="h-4 w-4" />
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm tabular-nums text-muted-foreground">
@@ -591,6 +607,9 @@ export function TransactionsTable({
                             </Button>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <SharingChip transaction={txn} />
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         <TransactionSourceCell

@@ -39,13 +39,13 @@ export function NeedsAttentionCard({ data }: Props) {
           icon={<AlertTriangle className="h-4 w-4" />}
           label={t("needsAttentionLowConfidence")}
           count={lowConfidence}
-          href="/transactions"
+          href="/review"
         />
         <Row
           icon={<Flag className="h-4 w-4" />}
           label={t("needsAttentionFlagged")}
           count={flagged}
-          href="/transactions"
+          href="/review"
         />
       </ul>
     </CardShell>
